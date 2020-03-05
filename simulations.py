@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import time
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder
 from Environment import Environment
 from Agents import RandomAgent, MLAgent, DeepAgent, EmbeddingAgent, DotAgent
@@ -605,7 +606,7 @@ def run_several_experiments_hist_Embedding_online(evolutive_env = False, nb_exp 
 
 
 def run_several_experiments_several_agents(agent_dict, action_size, evolutive_env, folder_saves, schools_dictionnary, domains_to_skills_dictionnary,
-                                           companies, hierarchical_levels, skills, places, nb_exp = 10, nb_steps = 1000,
+                                           companies, hierarchical_levels, skills, places, nb_exp = 20, nb_steps = 1000,
                                            nb_steps_history = 1000):
   
     env = Environment(schools_dictionnary, domains_to_skills_dictionnary, companies, hierarchical_levels,
@@ -663,19 +664,25 @@ def run_several_experiments_several_agents(agent_dict, action_size, evolutive_en
         np.savetxt(os.path.join(folder_saves, f"_rewards_{agent_name}.txt"), rewards)            
 
 
+def plot_regret(regret, regrets):
+    plt.plot(regrets[:, :, 0].mean(axis=0), color='blue')
+    plt.plot(np.quantile(regrets[:, :, 0], 0.05, axis=0), color='grey', alpha=0.5)
+    plt.plot(np.quantile(regrets[:, :, 0], 0.95, axis=0), color='grey', alpha=0.5)
+    plt.title('Mean regret: {:.2f}'.format(regret[:, 0].mean(axis = 0)))
+    plt.xlabel('steps')
+    plt.ylabel('regret')
+    plt.show()
+
 
 domains_to_skills_dictionnary = {
-    "Management":       ["Communication", "Management", "Project Management", "RH", "Strategy", "Plannification", "Leadership", "Risk Management"],
-    "Computer Science": ["Symfony", "Flask", "Docker", "SQL", "Python", "Java", "Javascript", "AWS", "Git"],
-    "Data Science":     ["Machine Learning", "Deep Learning", "Pandas", "Scikit-Learn", "Office", "SQL", "Computer Vision", "NLP"]
+    "Computer Science": ["Symfony", "Flask", "Docker", "SQL", "Python"],
+    "Data Science":     ["Machine Learning", "Deep Learning", "Pandas", "Scikit-Learn", "Office"]
 }
 
 schools_dictionnary = {
     "Télécom Paris"   : {"domains": ["Data Science"],
                          "place"  : "Paris"},
     "ENSIEE"          : {"domains": ["Computer Science"],
-                         "place"  : "Evry"},
-    "IMTBS"           : {"domains": ["Management"],
                          "place"  : "Evry"},
 }
 
@@ -687,7 +694,7 @@ hierarchical_levels = ["intern", "junior", "senior"]
 
 skills = [skill for domain in domains_to_skills_dictionnary for skill in domains_to_skills_dictionnary[domain]]
 
-places = ["Evry", "Paris", "Saclay", "Bordeaux", "Rennes"]
+places = ["Evry", "Paris", "Saclay"]
 
 companies_oh = OneHotEncoder(sparse=False).fit(np.asarray(companies).reshape(-1, 1))
 skills_oh    = OneHotEncoder(sparse=False).fit(np.asarray(skills).reshape(-1, 1))
