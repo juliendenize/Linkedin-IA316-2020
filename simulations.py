@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 import os
 import time
 import matplotlib.pyplot as plt
@@ -141,10 +142,7 @@ def run_exp_hist(random_agent, agent, env, nb_steps_history, nb_steps, action_si
         rewards[i] = reward
         actions[i] = action
         regrets[i] = best_reward - reward
-        if i in range(nb_steps -5 , nb_steps) : 
-          print("best reward is : " , best_reward)
-          print("reward is : " , reward)
-          print("regrets is : " , regrets[i], "\n")
+
 
     reward = rewards[:, 0].sum()
     regret = np.sum(regrets, axis = 0)
@@ -615,7 +613,7 @@ def run_several_experiments_several_agents(agent_dict, action_size, evolutive_en
     for agent_name in agent_dict:
         print(f"{agent_name} started.")
 
-        if os.path.exists(os.path.join(folder_saves, f"_rewards_{agent_name}.txt")):
+        if os.path.exists(os.path.join(folder_saves, f"_rewards_{agent_name}.pkl")):
             continue
 
         regret = np.zeros((nb_exp, action_size))
@@ -625,7 +623,7 @@ def run_several_experiments_several_agents(agent_dict, action_size, evolutive_en
 
         time1 = time.time()
         for i in range(nb_exp):
-            if i %  10 ** (np.log10(nb_exp) - 1) == 0:
+            if i %  5 == 0:
                 print(f"Simulation {i} started, time elapsed: {(time.time() - time1):.3f} seconds.")
 
             if "random" in agent_name:
@@ -644,11 +642,11 @@ def run_several_experiments_several_agents(agent_dict, action_size, evolutive_en
                 agent = EmbeddingAgent(**agent_dict[agent_name], seed = i)  
 
 
-            if "random" or "Dot" in agent_name:
-                exp = run_exp(agent, env, nb_steps, folder_saves, i)
+            if "random" in agent_name or "Dot" in agent_name:
+                exp = run_exp(agent, env, nb_steps, action_size, i)
 
             else:
-                random_agent = RandomAgent(agent_dict[agent_name], seed = i) 
+                random_agent = RandomAgent(agent.action_size, seed = i) 
                 exp          = run_exp_hist(random_agent, agent, env, nb_steps_history, nb_steps, action_size, i)
             
 
@@ -657,11 +655,18 @@ def run_several_experiments_several_agents(agent_dict, action_size, evolutive_en
             regrets_normal[i] = exp['regrets']
             rewards[i]        = exp['rewards']
         
+        with open(os.path.join(folder_saves, f"_regret_{agent_name}.pkl"),"wb") as f:
+            pickle.dump(regret,f)
+        
+        with open(os.path.join(folder_saves, f"_regrets_{agent_name}.pkl"),"wb") as f:
+            pickle.dump(regrets,f)
+        
+        with open(os.path.join(folder_saves, f"_regrets_normal_{agent_name}.pkl"),"wb") as f:
+            pickle.dump(regrets_normal,f)
+        
+        with open(os.path.join(folder_saves, f"_rewards_{agent_name}.pkl"),"wb") as f:
+            pickle.dump(rewards,f)   
 
-        np.savetxt(os.path.join(folder_saves, f"_regret_{agent_name}.txt"), regret)
-        np.savetxt(os.path.join(folder_saves, f"_regrets_{agent_name}.txt"), regrets)
-        np.savetxt(os.path.join(folder_saves, f"_regrets_normal_{agent_name}.txt"), regrets_normal)
-        np.savetxt(os.path.join(folder_saves, f"_rewards_{agent_name}.txt"), rewards)            
 
 
 def plot_regret(regret, regrets):
@@ -671,6 +676,7 @@ def plot_regret(regret, regrets):
     plt.title('Mean regret: {:.2f}'.format(regret[:, 0].mean(axis = 0)))
     plt.xlabel('steps')
     plt.ylabel('regret')
+    plt.grid()
     plt.show()
 
 
