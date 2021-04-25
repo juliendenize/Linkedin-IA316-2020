@@ -28,4 +28,4 @@ It seems that the Deep Learning and Linear Regression agents don't perform well 
 
 ## Link to the course materials
 
-This project has been developed as part of a class taught by Thibault Allart. The course material and the links to the other projets are available [here](https://github.com/thibaultallart/IA316-2020. 
+This project has been developed as part of a class taught by Thibault Allart. The course material and the links to the other projets are available [here](https://github.com/thibaultallart/IA316-2020). 
